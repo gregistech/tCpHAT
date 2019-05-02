@@ -1,7 +1,7 @@
 import socket
 
 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-connection.connect(("127.0.0.1", 1234))
+connection.connect(("127.0.0.1", 1237))
 while True:
     msg = input("Message: ")
     connection.send(msg.encode("utf-8"))

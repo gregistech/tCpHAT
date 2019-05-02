@@ -1,5 +1,13 @@
 import socket
 from threading import Thread
+from command import Command
+
+def disconnect(client):
+    client.con.close()
+
+commands = {
+            "disconnect": Command("disconnect", disconnect)
+        }
 
 class Client: 
     def __init__(self, con, name):
@@ -7,24 +15,40 @@ class Client:
         self.name = name
 
 class ListeningThread(Thread):
-    def __init__(self, connection):
+    def __init__(self, client):
         Thread.__init__(self)
-        self.connection = connection
+        self.client = client
+        self.connection = client.con
+        self.name = client.name
 
     def run(self):
         while True:
             connection = self.connection
+            if connection.fileno() == -1: return
             data = connection.recv(2048)
-            connection.send(data)
+            if not data: return
+            data = data.decode("utf-8")
+            
+            if data.startswith("/"):
+                try:
+                    data = data[1:]
+                    v = commands[data]
+                except KeyError:
+                    connection.send("Command not found... You should try the /help command.".encode("utf-8"))
+                else: 
+                    v.action(self.client)
+            else:
+                connection.sendall(data.encode("utf-8"))
         connection.close()
+        return
 
 def listen():
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.bind(('0.0.0.0', 1234))
-    connection.listen(10)
+    connection.bind(('0.0.0.0', 1237))
+    connection.listen(20)
     while True:
         c, address = connection.accept()
-        curThread = ListeningThread(c)
+        curThread = ListeningThread(Client(c, "arimp"))
         curThread.start()
 
 if __name__ == "__main__":
