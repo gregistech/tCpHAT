@@ -2,8 +2,14 @@ import socket
 from threading import Thread
 from command import Command
 
+clients = []
+
 def disconnect(client):
     client.con.close()
+
+def sendAll(clients, msg): 
+    for c in clients:
+        c.con.send(msg.encode("utf-8"))
 
 commands = {
             "disconnect": Command("disconnect", disconnect)
@@ -38,17 +44,21 @@ class ListeningThread(Thread):
                 else: 
                     v.action(self.client)
             else:
-                connection.sendall(data.encode("utf-8"))
+                clientsMod = clients.copy()
+                clientsMod.remove(self.client)
+                sendAll(clientsMod, data)
         connection.close()
         return
 
 def listen():
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.bind(('0.0.0.0', 1237))
+    connection.bind(('0.0.0.0', 1239))
     connection.listen(20)
     while True:
         c, address = connection.accept()
-        curThread = ListeningThread(Client(c, "arimp"))
+        curClient = Client(c, "Anonymus")
+        clients.append(curClient)
+        curThread = ListeningThread(curClient)
         curThread.start()
 
 if __name__ == "__main__":
