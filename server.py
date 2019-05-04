@@ -48,7 +48,6 @@ class ListeningThread(Thread):
                     params = data.split(" ")
                     com = params[0]
                     params = params[1:]
-                    print(com + " | " + params[0])
                     v = commands[com]
                 except KeyError:
                     connection.send("Command not found... You should try the /help command.".encode("utf-8"))
