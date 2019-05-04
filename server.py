@@ -5,6 +5,16 @@ from command import Command
 from commands import *
 clients = []
 
+def getCommandInfo(data):
+    data = data[1:]
+    params = data.split(" ")
+    com = params[0]
+    params = params[1:]
+    return com, params
+
+def isCommand(data):
+    return data.startswith("/")
+
 def escapeCharacter(msg):
     return re.sub(r"(\|)", r"\\\1", msg) 
             
@@ -40,21 +50,17 @@ class ListeningThread(Thread):
             if not data: return
             data = data.decode("utf-8")
             
-            if data.startswith("/"):
+            if isCommand(data):
                 try:
-                    data = data[1:]
-                    params = data.split(" ")
-                    com = params[0]
-                    params = params[1:]
+                    com, params = getCommandInfo(data)
                     v = commands[com]
                 except KeyError:
-                    connection.send("Command not found... You should try the /help command.".encode("utf-8"))
+                    connection.send("err|cmd_nf".encode("utf-8"))
                 else: 
                     if len(params) == v.maxparams:
                         v.action(params, client)
                     else:
-                        connection.send("This command needs {0} number of parameters, not {1}".format(v.maxparams, 
-                                                                                                      len(params)).encode("utf-8"))
+                        connection.send("err|params_quant".encode("utf-8"))
             else:
                 clientsMod = clients.copy()
                 clientsMod.remove(client)

@@ -1,6 +1,6 @@
 import socket
 import sys
-from termcolor import colored
+from termcolor import colored, cprint
 from threading import Thread
 
 username = ""
@@ -19,7 +19,6 @@ class ListeningThread(Thread):
             data = connection.recv(2048)
             if not data: break
             data = data.decode("utf-8")
-            
             escapedCharacters = []
             count = 0
             for i in data:
@@ -30,14 +29,23 @@ class ListeningThread(Thread):
                             escapedCharacters.append(count)
                 count += 1
             meta = data.split("|")
-            
             for i in escapedCharacters:
                 meta[2] = data[:i] + "|" + data[i + 2:]
                 meta[2] = meta[2][len(meta[0]) + len(meta[1]) + 2:]
+            
             if meta[0] == "msg":
                 sender = colored(meta[1] + ": ", "yellow")
                 msg = meta[2]
                 print(sender + msg)
+            elif meta[0] == "err":
+                if meta[1] == "cmd_nf":
+                    cprint("Command not found!", "red")
+                elif meta[1] == "params_quant":
+                    cprint("You gave the wrong amount of parameters for the command!", "red")
+                else:
+                    cprint("Unknown error!", "red")
+            else:
+                cprint("Unknown type of message!", "yellow")
         return
 
 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
