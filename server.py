@@ -9,8 +9,10 @@ def disconnect(client):
 
 def sendAll(clients, msg): 
     for c in clients:
-        c.con.send(msg.encode("utf-8"))
-
+        try:
+            c.con.send(msg.encode("utf-8"))
+        except BrokenPipeError:
+            clients.remove(c)
 commands = {
             "disconnect": Command("disconnect", disconnect)
         }
@@ -52,7 +54,7 @@ class ListeningThread(Thread):
 
 def listen():
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.bind(('0.0.0.0', 1239))
+    connection.bind(('0.0.0.0', 1240))
     connection.listen(20)
     while True:
         c, address = connection.accept()
