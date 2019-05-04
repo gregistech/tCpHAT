@@ -1,14 +1,8 @@
 import socket
 from threading import Thread
 from command import Command
-
+from commands import *
 clients = []
-
-def disconnect(params, client):
-    client.con.close()
-
-def registerClient(params, client):
-    client.name = params[0]
 
 def sendAll(clients, msg): 
     for c in clients:
@@ -55,10 +49,8 @@ class ListeningThread(Thread):
                     if len(params) == v.maxparams:
                         v.action(params, client)
                     else:
-                        connection.send(format("This command needs {0} number of parameters, not {1}", 
-                                                v.maxparams, 
-                                                length(params)).encode("utf-8")
-                                        )
+                        connection.send("This command needs {0} number of parameters, not {1}".format(v.maxparams, 
+                                                                                                      len(params)).encode("utf-8"))
             else:
                 clientsMod = clients.copy()
                 clientsMod.remove(client)
@@ -68,7 +60,7 @@ class ListeningThread(Thread):
 
 def listen():
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.bind(('0.0.0.0', 1242))
+    connection.bind(('0.0.0.0', 1243))
     connection.listen(20)
     while True:
         c, address = connection.accept()

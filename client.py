@@ -22,7 +22,7 @@ class ListeningThread(Thread):
         return
 
 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-connection.connect(("127.0.0.1", 1242))
+connection.connect(("127.0.0.1", 1243))
 username = input("Your username: ")
 connection.send(("/reg " + username).encode("utf-8"))
 while True:
