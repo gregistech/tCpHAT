@@ -1,5 +1,6 @@
 import socket
 import sys
+from termcolor import colored
 from threading import Thread
 
 username = ""
@@ -18,7 +19,25 @@ class ListeningThread(Thread):
             data = connection.recv(2048)
             if not data: break
             data = data.decode("utf-8")
-            print(data)
+            
+            escapedCharacters = []
+            count = 0
+            for i in data:
+                if i == "\\":
+                    if count < len(data) - 1:
+                        if data[count + 1] == "|":
+                            data = data[:count] + " " + data[count + 2:]
+                            escapedCharacters.append(count)
+                count += 1
+            meta = data.split("|")
+            
+            for i in escapedCharacters:
+                meta[2] = data[:i] + "|" + data[i + 2:]
+                meta[2] = meta[2][len(meta[0]) + len(meta[1]) + 2:]
+            if meta[0] == "msg":
+                sender = colored(meta[1] + ": ", "yellow")
+                msg = meta[2]
+                print(sender + msg)
         return
 
 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

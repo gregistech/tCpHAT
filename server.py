@@ -1,8 +1,13 @@
 import socket
+import re
 from threading import Thread
 from command import Command
 from commands import *
 clients = []
+
+def escapeCharacter(msg):
+    return re.sub(r"(\|)", r"\\\1", msg) 
+            
 
 def sendAll(clients, msg): 
     for c in clients:
@@ -25,7 +30,6 @@ class ListeningThread(Thread):
         Thread.__init__(self)
         self.client = client
         self.connection = client.con
-        self.name = client.name
 
     def run(self):
         client = self.client
@@ -54,7 +58,7 @@ class ListeningThread(Thread):
             else:
                 clientsMod = clients.copy()
                 clientsMod.remove(client)
-                sendAll(clientsMod, client.name + ": " + data)
+                sendAll(clientsMod, "msg|{sender}|{msg}".format(sender=client.name, msg=escapeCharacter(data)))
         connection.close()
         return
 
