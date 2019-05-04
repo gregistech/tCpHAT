@@ -4,8 +4,11 @@ from command import Command
 
 clients = []
 
-def disconnect(client):
+def disconnect(params, client):
     client.con.close()
+
+def registerClient(params, client):
+    client.name = params[0]
 
 def sendAll(clients, msg): 
     for c in clients:
@@ -14,7 +17,8 @@ def sendAll(clients, msg):
         except BrokenPipeError:
             clients.remove(c)
 commands = {
-            "disconnect": Command("disconnect", disconnect)
+            "disconnect": Command("disconnect", disconnect, 0),
+            "reg": Command("reg", registerClient, 1)
         }
 
 class Client: 
@@ -30,8 +34,9 @@ class ListeningThread(Thread):
         self.name = client.name
 
     def run(self):
+        client = self.client
+        connection = self.connection 
         while True:
-            connection = self.connection
             if connection.fileno() == -1: return
             data = connection.recv(2048)
             if not data: return
@@ -40,21 +45,31 @@ class ListeningThread(Thread):
             if data.startswith("/"):
                 try:
                     data = data[1:]
-                    v = commands[data]
+                    params = data.split(" ")
+                    com = params[0]
+                    params = params[1:]
+                    print(com + " | " + params[0])
+                    v = commands[com]
                 except KeyError:
                     connection.send("Command not found... You should try the /help command.".encode("utf-8"))
                 else: 
-                    v.action(self.client)
+                    if len(params) == v.maxparams:
+                        v.action(params, client)
+                    else:
+                        connection.send(format("This command needs {0} number of parameters, not {1}", 
+                                                v.maxparams, 
+                                                length(params)).encode("utf-8")
+                                        )
             else:
                 clientsMod = clients.copy()
-                clientsMod.remove(self.client)
-                sendAll(clientsMod, data)
+                clientsMod.remove(client)
+                sendAll(clientsMod, client.name + ": " + data)
         connection.close()
         return
 
 def listen():
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    connection.bind(('0.0.0.0', 1240))
+    connection.bind(('0.0.0.0', 1242))
     connection.listen(20)
     while True:
         c, address = connection.accept()

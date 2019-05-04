@@ -2,6 +2,8 @@ import socket
 import sys
 from threading import Thread
 
+username = ""
+
 class Server:
     def __init__(self, con):
         self.con = con
@@ -20,7 +22,9 @@ class ListeningThread(Thread):
         return
 
 connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-connection.connect(("127.0.0.1", 1240))
+connection.connect(("127.0.0.1", 1242))
+username = input("Your username: ")
+connection.send(("/reg " + username).encode("utf-8"))
 while True:
     listenThread = ListeningThread(Server(connection))
     listenThread.start()
